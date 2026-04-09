@@ -50,12 +50,6 @@ class WalkingRobot:
         stroke_len = (xf - xb) * mm
         body_vel = stroke_len / cycle_time
 
-        n_steps = 10000  # deprecated idk
-
-        turn_deg_per_cycle = -1
-        steps_per_cycle = cycle_time / dt_anim
-        turn_rad_per_step = np.deg2rad(turn_deg_per_cycle) / steps_per_cycle
-
         W = 100 * mm
         L = 200 * mm
 
@@ -73,6 +67,7 @@ class WalkingRobot:
             rt.ERobot(leg, name='leg3')
         ]
 
+        n_steps = 10000  # deprecated idk
         total_arc = body_vel * dt_anim * n_steps  # approx 2.0 m
         pad = L + 0.15
 
@@ -103,10 +98,8 @@ class WalkingRobot:
         pos_y = 0.0
         theta = 0.0
 
-        K_p = 2.0
-        # temp variables
-        # start = (0, 0, 0)
         # running loop
+        K_p = 2.0
         i_goal = 0
         i = 0
         while True:
@@ -118,7 +111,7 @@ class WalkingRobot:
             heading_error = (bearing - theta + np.pi) % (2*np.pi) - np.pi
             turn_rad_per_step = K_p * heading_error * dt_anim
             dist_to_goal = np.hypot(goal[0] - pos_x, goal[1] - pos_y)
-            if dist_to_goal < 0.02:   # within 2 cm
+            if dist_to_goal < 0.005:   # within 5 mm
                 print(f"Goal {goal} reached at step {i}!")
                 i_goal += 1
                 print(f"Next goal is {goal_list[i_goal]}")
@@ -150,10 +143,17 @@ class WalkingRobot:
                 leg_robot.base = T_wb * leg_offsets[j]
 
             body.base = T_wb
+            ax = env.fig.axes[0]
+            cam_dist = 0.4
             if anim_skip_every <= 0:
                 env.step(dt=dt_anim)
+                env.step(dt=dt_anim)
+                ax.set_xlim(pos_x - cam_dist, pos_x + cam_dist)
+                ax.set_ylim(pos_y - cam_dist, pos_y + cam_dist)
             elif i % anim_skip_every == 0:
                 env.step(dt=dt_anim)
+                ax.set_xlim(pos_x - cam_dist, pos_x + cam_dist)
+                ax.set_ylim(pos_y - cam_dist, pos_y + cam_dist)
 
             i += 1
 
