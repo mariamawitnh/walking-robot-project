@@ -8,7 +8,10 @@ from roboticstoolbox.backends.PyPlot import PyPlot
 
 
 class WalkingRobot:
-    def __init__(self, goal_list: list, dt_anim=0.02):
+    def __init__(self, goal_list: list, dt_anim=0.01, cycle_time=4.01, anim_skip_every=3):
+        """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
+        gait_dt = 0.01
+        step_size = max(1, round(dt_anim / gait_dt))
         """ Init the class itself, prepare everything to run later """
         print("Init...")
         mm = 0.001
@@ -34,7 +37,7 @@ class WalkingRobot:
         ]) * mm
 
         print("create trajectory\n")
-        x = rt.mstraj(segments, tsegment=[3, 0.25, 0.5, 0.25], dt=0.01, tacc=0.07)
+        x = rt.mstraj(segments, tsegment=[3, 0.25, 0.5, 0.25], dt=gait_dt, tacc=0.07)
 
         print("inverse kinematics (this will take a moment)....", end='')
         xcycle = x.q
@@ -43,12 +46,11 @@ class WalkingRobot:
         print("done")
         qcycle = sol.q
 
-        cycle_time = 4.0
+        cycle_time = cycle_time
         stroke_len = (xf - xb) * mm
         body_vel = stroke_len / cycle_time
 
-        dt_anim = dt_anim
-        n_steps = 4000
+        n_steps = 10000  # deprecated idk
 
         turn_deg_per_cycle = -1
         steps_per_cycle = cycle_time / dt_anim
@@ -103,26 +105,33 @@ class WalkingRobot:
 
         K_p = 2.0
         # temp variables
-        goal = (0.5, 0, 0.5)
         # start = (0, 0, 0)
         # running loop
-        for i in range(n_steps):
+        i_goal = 0
+        i = 0
+        while True:
             if not plt.fignum_exists(env.fig.number):
                 break
 
+            goal = goal_list[i_goal]
             bearing = np.arctan2(goal[1] - pos_y, goal[0] - pos_x)
             heading_error = (bearing - theta + np.pi) % (2*np.pi) - np.pi
             turn_rad_per_step = K_p * heading_error * dt_anim
             dist_to_goal = np.hypot(goal[0] - pos_x, goal[1] - pos_y)
             if dist_to_goal < 0.02:   # within 2 cm
-                print(f"Goal reached at step {i}!")
+                print(f"Goal {goal} reached at step {i}!")
+                i_goal += 1
+                print(f"Next goal is {goal_list[i_goal]}")
+
+            if i_goal >= len(goal_list):
+                print("We have reached every goal!")
                 break
 
             # 1. Update joint angles
-            legs[0].q = self._gait(qcycle, i,   0, False)
-            legs[1].q = self._gait(qcycle, i, 100, False)
-            legs[2].q = self._gait(qcycle, i, 200, True)
-            legs[3].q = self._gait(qcycle, i, 300, True)
+            legs[0].q = self._gait(qcycle, i * step_size,   0, False)
+            legs[1].q = self._gait(qcycle, i * step_size, 100, False)
+            legs[2].q = self._gait(qcycle, i * step_size, 200, True)
+            legs[3].q = self._gait(qcycle, i * step_size, 300, True)
 
             # 2. Update heading (accumulate turn each step)
             theta += turn_rad_per_step
@@ -141,8 +150,12 @@ class WalkingRobot:
                 leg_robot.base = T_wb * leg_offsets[j]
 
             body.base = T_wb
+            if anim_skip_every <= 0:
+                env.step(dt=dt_anim)
+            elif i % anim_skip_every == 0:
+                env.step(dt=dt_anim)
 
-            env.step(dt=dt_anim)
+            i += 1
 
         env.hold()
         plt.close('all')
@@ -153,6 +166,3 @@ class WalkingRobot:
         if flip:
             q[0] = -q[0]
         return q
-
-    def _walk_from_to(self, start: tuple, end: tuple):
-        pass
