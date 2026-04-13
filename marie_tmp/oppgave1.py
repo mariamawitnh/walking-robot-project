@@ -3,6 +3,7 @@ import walkingrobot
 
 
 # Punkter vi skal nå~ (enhet cm)
+# er noe feil med enhetene her vs enhetene i den andre filen btw
 # Først A-B, så A-C, så til D
 A = (0, 0, 0)
 B = (100, 0, 0)
