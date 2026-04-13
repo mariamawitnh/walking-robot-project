@@ -12,3 +12,4 @@ D = (100, 0, 10)  # \pm 10
 goal_list = [A, B, A, C, A, D]
 
 robot = walkingrobot.WalkingRobot(goal_list, anim_skip_every=1000)
+robot.run()
