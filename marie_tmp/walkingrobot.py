@@ -145,7 +145,8 @@ class WalkingRobot:
             if dist_to_goal < self.GOAL_RADIUS:
                 print(f"Goal {goal} reached at step {i}!")
                 i_goal += 1
-                print(f"Next goal is {self._goal_list[i_goal]}")
+                if i_goal < len(self._goal_list):
+                    print(f"Next goal is {self._goal_list[i_goal]}")
 
             if i_goal >= len(self._goal_list):
                 print("We have reached every goal!")
