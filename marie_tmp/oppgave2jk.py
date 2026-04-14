@@ -39,7 +39,7 @@ for name, coord in places.items():
     plt.text(x + 5, y + 5, name, color="red")
 """
 # plt.show()
-scale = 0.01
+scale = 1
 # goal_list = [(p[1]*scale, p[0]*scale) for p in path]
 # goal_list = [(p[0], p[1]) for p in path]
 robot = walkingrobot.WalkingRobot(

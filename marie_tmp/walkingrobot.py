@@ -96,7 +96,7 @@ class WalkingRobot:
             self.ax.view_init(elev=90, azim=-90)
 
         if floor_plan is not None:
-            fp = floor_plan[::1][::1]
+            fp = floor_plan[::2][::2]
             h, w = fp.shape[:2]
             xs = np.linspace(-env_lim, env_lim, w)
             ys = np.linspace(-env_lim / 2, env_lim / 2, h)
