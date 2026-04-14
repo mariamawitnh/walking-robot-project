@@ -28,6 +28,7 @@ class WalkingRobot:
         """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
         if path is None:
             self._goal_list = [(p[0]*scale, p[1]*scale) for p in goal_list]  # excpects the transform ig
+            self.path = None
         else:
             # ndarray ig, actually test for this or something?
             self._goal_list = [(p[1]*scale, p[0]*scale) for p in path]
@@ -95,7 +96,7 @@ class WalkingRobot:
             self.ax.view_init(elev=90, azim=-90)
 
         if floor_plan is not None:
-            fp = floor_plan[::2][::2]
+            fp = floor_plan[::1][::1]
             h, w = fp.shape[:2]
             xs = np.linspace(-env_lim, env_lim, w)
             ys = np.linspace(-env_lim / 2, env_lim / 2, h)
