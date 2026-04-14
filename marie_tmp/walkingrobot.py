@@ -15,20 +15,32 @@ class WalkingRobot:
     L1 = L2 = 0.200
 
     def __init__(self,
-                 goal_list: list,
+                 goal_list: list = None,
+                 path=None,
                  dt_anim=0.01,
                  cycle_time=4.01,
-                 anim_skip_every=3
+                 anim_skip_every=3,
+                 floor_plan=None,
+                 scale=1.0,
+                 topdown=False,
+                 cam_dist=0.4
                  ):
         """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
-        self._goal_list = goal_list
+        if path is None:
+            self._goal_list = [(p[0]*scale, p[1]*scale) for p in goal_list]  # excpects the transform ig
+        else:
+            # ndarray ig, actually test for this or something?
+            self._goal_list = [(p[1]*scale, p[0]*scale) for p in path]
+            self.path = path
         self._dt = dt_anim
         self._gait_dt = 0.01
         self._step_size = max(1, round(dt_anim / self._gait_dt))
+        self._cam_dist = cam_dist
 
         self.leg = self._create_leg()
         self.legs = self._create_legs(self.leg)
         self.leg_offsets = self._create_leg_offsets()
+        self.topdown = topdown
 
         self._skip = anim_skip_every
         """ Init the class itself, prepare everything to run later """
@@ -78,7 +90,22 @@ class WalkingRobot:
             -env_lim / 2,  env_lim / 2,   # y
             -0.15,     0.10       # z
         ])
+        self.ax = self.env.fig.axes[0]
+        if self.topdown:
+            self.ax.view_init(elev=90, azim=-90)
 
+        if floor_plan is not None:
+            fp = floor_plan[::2][::2]
+            h, w = fp.shape[:2]
+            xs = np.linspace(-env_lim, env_lim, w)
+            ys = np.linspace(-env_lim / 2, env_lim / 2, h)
+            X, Y = np.meshgrid(xs, ys)
+            self.ax.plot_surface(X, Y, np.zeros_like(X),
+                                 facecolors=plt.cm.gray(fp / fp.max()),
+                                 rstride=1, cstride=1, shade=False, zorder=0)
+
+        if self.path is not None:
+            self.ax.plot(self.path[0], self.path[1], "r", linewidth=2)
         T_wb = sm.SE3(0, 0, 0)
 
         for i, leg_robot in enumerate(self.legs):
@@ -175,8 +202,8 @@ class WalkingRobot:
                 leg_robot.base = T_wb * self.leg_offsets[j]
 
             self.body.base = T_wb
-            ax = self.env.fig.axes[0]
-            cam_dist = 0.4
+            ax = self.ax
+            cam_dist = self._cam_dist
             if self._skip <= 0:
                 self.env.step(dt=self._dt)
                 self.env.step(dt=self._dt)
@@ -186,6 +213,9 @@ class WalkingRobot:
                 self.env.step(dt=self._dt)
                 ax.set_xlim(pos_x - cam_dist, pos_x + cam_dist)
                 ax.set_ylim(pos_y - cam_dist, pos_y + cam_dist)
+
+            if self.topdown:
+                ax.view_init(elev=90, azim=-90)
 
             i += 1
 
