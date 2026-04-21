@@ -1,5 +1,5 @@
 """ Denne skal løse oppgave 1 """
-import walkingrobot
+import walkingrobot1
 
 
 # Punkter vi skal nå~ (enhet m)
@@ -11,5 +11,5 @@ D = (1, 0, 0.10)  # \pm 10
 
 goal_list = [A, B, A, C, A, D]
 
-robot = walkingrobot.WalkingRobot(goal_list, anim_skip_every=1, scale=1., task1_aspect_ratio=True)
+robot = walkingrobot1.WalkingRobot(goal_list, anim_skip_every=100)
 robot.run()
