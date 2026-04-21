@@ -1,6 +1,6 @@
 """ kreft suger baller """
 import roboticstoolbox as rt
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import random
 import walkingrobot as walkingrobot
 # from roboticstoolbox.backends.PyPlot import PyPlot
@@ -16,19 +16,20 @@ def generate_random_path_plot(i):
 
     # generate two unique points
     while True:
-        start = places[random.choice(list(places))]
-        end = places[random.choice(list(places))]
-
+        place1 = random.choice(list(places))
+        start = places[place1]
+        place2 = random.choice(list(places))
+        end = places[place2]
         break
         if start.all() != end.all():
             break
 
     # generate path
+    print(place1, place2, start, end)
     dx = rt.DistanceTransformPlanner(occgrid=floorplan)
     dx.plan(goal=end)
     path = dx.query(start=start)
 
-    """
     fig, ax = plt.subplots()
     ax.imshow(floorplan, cmap="gray")
 
@@ -40,10 +41,10 @@ def generate_random_path_plot(i):
     ax.plot(end[0], end[1], 'bo')     # blue goal
 
     plt.show()
-    """
-    goal_list = [(p[1], p[0]) for p in path]
+
+    # goal_list = [(p[0], p[1]) for p in path]
     robot = walkingrobot.WalkingRobot(
-        goal_list, topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False)
+        topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False, path=path)
     robot.run()
 
 
