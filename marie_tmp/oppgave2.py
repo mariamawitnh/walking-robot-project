@@ -2,7 +2,7 @@
 import roboticstoolbox as rt
 import matplotlib.pyplot as plt
 import random
-import walkingrobot as walkingrobot
+import walkingrobot5 as walkingrobot
 # from roboticstoolbox.backends.PyPlot import PyPlot
 
 # følg fra 5.4 og ut i boka ellerno
@@ -21,6 +21,8 @@ def generate_random_path_plot(i):
         place2 = random.choice(list(places))
         end = places[place2]
         break
+
+        # if cross of the two vectors equal zero, then try try again
         if start.all() != end.all():
             break
 
