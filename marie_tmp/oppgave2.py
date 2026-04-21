@@ -1,8 +1,8 @@
 """ kreft suger baller """
 import roboticstoolbox as rt
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import random
-# import walkingrobot
+import walkingrobot as walkingrobot
 # from roboticstoolbox.backends.PyPlot import PyPlot
 
 # følg fra 5.4 og ut i boka ellerno
@@ -28,6 +28,7 @@ def generate_random_path_plot(i):
     dx.plan(goal=end)
     path = dx.query(start=start)
 
+    """
     fig, ax = plt.subplots()
     ax.imshow(floorplan, cmap="gray")
 
@@ -39,6 +40,11 @@ def generate_random_path_plot(i):
     ax.plot(end[0], end[1], 'bo')     # blue goal
 
     plt.show()
+    """
+    goal_list = [(p[1], p[0]) for p in path]
+    robot = walkingrobot.WalkingRobot(
+        goal_list, topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False)
+    robot.run()
 
 
 for i in range(5):
