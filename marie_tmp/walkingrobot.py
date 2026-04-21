@@ -9,7 +9,7 @@ from roboticstoolbox.backends.PyPlot import PyPlot
 
 class WalkingRobot:
     """ A class for reusing the robot things, units in metres (usually) """
-    GOAL_RADIUS = 0.05   # 5cm — waypoints are ~10cm apart in world coords
+    GOAL_RADIUS = 0.05
     BODY_WIDTH = 0.100
     BODY_LENGTH = 0.200
     L1 = L2 = 0.200
@@ -24,16 +24,12 @@ class WalkingRobot:
                  scale=0.01,
                  topdown=False,
                  cam_dist=0.4,
-                 follow_cam=True
+                 follow_cam=True,
+                 task1_aspect_ratio=False
                  ):
         """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
         self._scale = scale
 
-        # Hoist image dims early so both goal_list and path display use same convention.
-        # Convention used everywhere below:
-        #   image row 0 is at the TOP of the floorplan image, increasing downward
-        #   world_x = col * scale
-        #   world_y = (h_img - row) * scale    (so row 0 maps to top of plot)
         if floor_plan is not None:
             h_img, w_img = floor_plan.shape[:2]
         else:
@@ -43,10 +39,7 @@ class WalkingRobot:
             self._goal_list = [(p[0] * scale, p[1] * scale) for p in goal_list]
             self.path = None
         else:
-            # path is Nx2 where columns are [x, y] = [col, row] (image coords).
-            # roboticstoolbox's DistanceTransformPlanner returns points in (x, y)
-            # order, which for an image means (column, row). Flip y because image
-            # row 0 is at the top but world_y increases upward.
+            # flip y
             self.path = path
             if h_img is not None:
                 self._goal_list = [(p[0] * scale, (h_img - p[1]) * scale) for p in path]
@@ -118,6 +111,7 @@ class WalkingRobot:
             y_min, y_max,
             -0.15, 0.10
         ])
+
         self.ax = self.env.fig.axes[0]
 
         # Enforce true aspect ratio so a rectangular floorplan isn't squished into a square.
@@ -146,7 +140,7 @@ class WalkingRobot:
             ys = np.linspace(world_h, 0, h_img)
             X, Y = np.meshgrid(xs, ys)
 
-            # Don't flip the image data — the descending Y meshgrid above already
+            # Don't flip the image data - the descending Y meshgrid above already
             # maps row 0 to the top of the plot, matching how images are conventionally drawn.
             fp_display = floor_plan.astype(float)
             fp_norm = fp_display / fp_display.max()
@@ -261,7 +255,7 @@ class WalkingRobot:
             # 2. Update heading
             theta += turn_rad_per_step
 
-            # 3. Advance position — scale speed by alignment so robot turns before charging forward
+            # 3. Advance position - scale speed by alignment so robot turns before charging forward
             alignment = max(0.0, np.cos(heading_error))
             ds = self.body_vel * self._dt * alignment
             pos_x += ds * np.cos(theta)

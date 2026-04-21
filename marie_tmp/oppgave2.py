@@ -2,9 +2,8 @@
 import roboticstoolbox as rt
 import matplotlib.pyplot as plt
 import random
-import walkingrobot5 as walkingrobot
+import walkingrobot as walkingrobot
 import numpy as np
-# from roboticstoolbox.backends.PyPlot import PyPlot
 
 # følg fra 5.4 og ut i boka ellerno
 house = rt.rtb_load_matfile("data/house.mat")
@@ -46,7 +45,7 @@ def generate_random_path_plot(i):
 
     # goal_list = [(p[0], p[1]) for p in path]
     robot = walkingrobot.WalkingRobot(
-        topdown=True, floor_plan=floorplan, anim_skip_every=10, follow_cam=False, path=path)
+        topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False, path=path)
     robot.run()
 
 
