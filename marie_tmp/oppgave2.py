@@ -1,9 +1,9 @@
 """ kreft suger baller """
 import roboticstoolbox as rt
 import matplotlib.pyplot as plt
+import random
 # import walkingrobot
 # from roboticstoolbox.backends.PyPlot import PyPlot
-
 
 # følg fra 5.4 og ut i boka ellerno
 house = rt.rtb_load_matfile("data/house.mat")
@@ -11,34 +11,38 @@ house = rt.rtb_load_matfile("data/house.mat")
 floorplan = house["floorplan"]
 places = house["places"]
 
-start = places["kitchen"]
-end = places["br3"]
 
-dx = rt.DistanceTransformPlanner(occgrid=floorplan)
-dx.plan(goal=end)
-path = dx.query(start=start)
+def generate_random_path_plot(i):
 
-fig, ax = plt.subplots()
-ax.imshow(floorplan, cmap="gray")
+    # generate two unique points
+    while True:
+        start = places[random.choice(list(places))]
+        end = places[random.choice(list(places))]
 
-pathT = path.T  # path transpose so it becomes (x, y)
-ax.plot(pathT[0], pathT[1], "r", linewidth=2)
+        break
+        if start.all() != end.all():
+            break
 
-# plot start and end points
-ax.plot(start[0], start[1], 'go')   # green start
-ax.plot(end[0], end[1], 'bo')     # blue goal
+    # generate path
+    dx = rt.DistanceTransformPlanner(occgrid=floorplan)
+    dx.plan(goal=end)
+    path = dx.query(start=start)
+
+    fig, ax = plt.subplots()
+    ax.imshow(floorplan, cmap="gray")
+
+    pathT = path.T  # path transpose so it becomes (x, y)
+    ax.plot(pathT[0], pathT[1], "r", linewidth=2)
+
+    # plot start and end points
+    ax.plot(start[0], start[1], 'go')   # green start
+    ax.plot(end[0], end[1], 'bo')     # blue goal
+
+    plt.show()
 
 
-"""
-plt.imshow(floorplan, cmap="gray")
-
-# Plot room locations
-for name, coord in places.items():
-    x, y = coord
-    plt.scatter(x, y, c="red")
-    plt.text(x + 5, y + 5, name, color="red")
-"""
-plt.show()
+for i in range(5):
+    generate_random_path_plot(i)
 """
 scale = 0.01
 goal_list = [(p[1]*scale, p[0]*scale) for p in path]
