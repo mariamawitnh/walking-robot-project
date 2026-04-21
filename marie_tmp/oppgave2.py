@@ -3,6 +3,7 @@ import roboticstoolbox as rt
 import matplotlib.pyplot as plt
 import random
 import walkingrobot5 as walkingrobot
+import numpy as np
 # from roboticstoolbox.backends.PyPlot import PyPlot
 
 # følg fra 5.4 og ut i boka ellerno
@@ -20,10 +21,9 @@ def generate_random_path_plot(i):
         start = places[place1]
         place2 = random.choice(list(places))
         end = places[place2]
-        break
 
         # if cross of the two vectors equal zero, then try try again
-        if start.all() != end.all():
+        if np.cross(start, end) != 0:
             break
 
     # generate path
@@ -46,15 +46,9 @@ def generate_random_path_plot(i):
 
     # goal_list = [(p[0], p[1]) for p in path]
     robot = walkingrobot.WalkingRobot(
-        topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False, path=path)
+        topdown=True, floor_plan=floorplan, anim_skip_every=10, follow_cam=False, path=path)
     robot.run()
 
 
 for i in range(5):
     generate_random_path_plot(i)
-"""
-scale = 0.01
-goal_list = [(p[1]*scale, p[0]*scale) for p in path]
-robot = walkingrobot.WalkingRobot(goal_list)
-robot.run()
-"""

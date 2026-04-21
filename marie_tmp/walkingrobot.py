@@ -29,14 +29,29 @@ class WalkingRobot:
         """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
         self._scale = scale
 
+        # Hoist image dims early so both goal_list and path display use same convention.
+        # Convention used everywhere below:
+        #   image row 0 is at the TOP of the floorplan image, increasing downward
+        #   world_x = col * scale
+        #   world_y = (h_img - row) * scale    (so row 0 maps to top of plot)
+        if floor_plan is not None:
+            h_img, w_img = floor_plan.shape[:2]
+        else:
+            h_img, w_img = None, None
+
         if path is None:
             self._goal_list = [(p[0] * scale, p[1] * scale) for p in goal_list]
             self.path = None
         else:
-            # path is Nx2 where columns are [row, col] (image coords)
-            # convert to world coords: x = col * scale, y = row * scale
-            self._goal_list = [(p[1] * scale, p[0] * scale) for p in path]
+            # path is Nx2 where columns are [x, y] = [col, row] (image coords).
+            # roboticstoolbox's DistanceTransformPlanner returns points in (x, y)
+            # order, which for an image means (column, row). Flip y because image
+            # row 0 is at the top but world_y increases upward.
             self.path = path
+            if h_img is not None:
+                self._goal_list = [(p[0] * scale, (h_img - p[1]) * scale) for p in path]
+            else:
+                self._goal_list = [(p[0] * scale, p[1] * scale) for p in path]
 
         self._dt = dt_anim
         self._gait_dt = 0.01
@@ -85,9 +100,8 @@ class WalkingRobot:
 
         # Determine environment limits from floorplan or fallback
         if floor_plan is not None:
-            h, w = floor_plan.shape[:2]
-            world_w = w * scale
-            world_h = h * scale
+            world_w = w_img * scale
+            world_h = h_img * scale
             x_min, x_max = 0, world_w
             y_min, y_max = 0, world_h
         else:
@@ -106,20 +120,35 @@ class WalkingRobot:
         ])
         self.ax = self.env.fig.axes[0]
 
+        # Enforce true aspect ratio so a rectangular floorplan isn't squished into a square.
+        # matplotlib 3D axes stretch to a cube by default; set_box_aspect fixes that.
+        if floor_plan is not None:
+            world_w = w_img * scale
+            world_h = h_img * scale
+            z_range = 0.10 - (-0.15)
+            self.ax.set_box_aspect((world_w, world_h, z_range))
+        else:
+            x_range = x_max - x_min
+            y_range = y_max - y_min
+            z_range = 0.10 - (-0.15)
+            self.ax.set_box_aspect((x_range, y_range, z_range))
+
         if self.topdown:
             self.ax.view_init(elev=90, azim=-90)
 
         if floor_plan is not None:
-            h, w = floor_plan.shape[:2]
-            world_w = w * scale
-            world_h = h * scale
+            world_w = w_img * scale
+            world_h = h_img * scale
 
-            xs = np.linspace(0, world_w, w)
-            ys = np.linspace(0, world_h, h)
+            xs = np.linspace(0, world_w, w_img)
+            # Y axis: image row 0 should render at world_y = world_h (top of plot),
+            # image row h_img-1 should render at world_y = 0 (bottom of plot).
+            ys = np.linspace(world_h, 0, h_img)
             X, Y = np.meshgrid(xs, ys)
 
-            # Flip vertically: image row 0 is top, but plot Y increases upward
-            fp_display = np.flipud(floor_plan).astype(float)
+            # Don't flip the image data — the descending Y meshgrid above already
+            # maps row 0 to the top of the plot, matching how images are conventionally drawn.
+            fp_display = floor_plan.astype(float)
             fp_norm = fp_display / fp_display.max()
 
             # Downsample for rendering performance
@@ -132,10 +161,15 @@ class WalkingRobot:
             )
 
         if self.path is not None:
-            # path columns: [row, col] --> world: x = col*scale, y = row*scale
-            path_x = self.path[:, 1] * scale
-            path_y = (h - self.path[:, 0]) * scale
-            path_z = np.full_like(path_x, 0.05)  # 5mm above floor so it's visible over plot_surface
+            # Match the same coordinate transform used for _goal_list above:
+            # path columns are [x, y] = [col, row] in image coords.
+            if h_img is not None:
+                path_x = self.path[:, 0] * scale
+                path_y = (h_img - self.path[:, 1]) * scale
+            else:
+                path_x = self.path[:, 0] * scale
+                path_y = self.path[:, 1] * scale
+            path_z = np.full_like(path_x, 0.05)
             self.ax.plot3D(path_x, path_y, path_z, color='red', linewidth=2)
 
         T_wb = sm.SE3(0, 0, 0)

@@ -43,12 +43,15 @@ class WalkingRobot:
             self._goal_list = [(p[0] * scale, p[1] * scale) for p in goal_list]
             self.path = None
         else:
-            # path is Nx2 where columns are [row, col] (image coords)
+            # path is Nx2 where columns are [x, y] = [col, row] (image coords).
+            # roboticstoolbox's DistanceTransformPlanner returns points in (x, y)
+            # order, which for an image means (column, row). Flip y because image
+            # row 0 is at the top but world_y increases upward.
             self.path = path
             if h_img is not None:
-                self._goal_list = [(p[1] * scale, (h_img - p[0]) * scale) for p in path]
+                self._goal_list = [(p[0] * scale, (h_img - p[1]) * scale) for p in path]
             else:
-                self._goal_list = [(p[1] * scale, p[0] * scale) for p in path]
+                self._goal_list = [(p[0] * scale, p[1] * scale) for p in path]
 
         self._dt = dt_anim
         self._gait_dt = 0.01
@@ -158,13 +161,14 @@ class WalkingRobot:
             )
 
         if self.path is not None:
-            # Match the same coordinate transform used for _goal_list above
+            # Match the same coordinate transform used for _goal_list above:
+            # path columns are [x, y] = [col, row] in image coords.
             if h_img is not None:
-                path_x = self.path[:, 1] * scale
-                path_y = (h_img - self.path[:, 0]) * scale
+                path_x = self.path[:, 0] * scale
+                path_y = (h_img - self.path[:, 1]) * scale
             else:
-                path_x = self.path[:, 1] * scale
-                path_y = self.path[:, 0] * scale
+                path_x = self.path[:, 0] * scale
+                path_y = self.path[:, 1] * scale
             path_z = np.full_like(path_x, 0.05)
             self.ax.plot3D(path_x, path_y, path_z, color='red', linewidth=2)
 
