@@ -1,4 +1,4 @@
-""" kreft suger baller """
+""" Oppgave 2 """
 import roboticstoolbox as rt
 import matplotlib.pyplot as plt
 import random
@@ -12,7 +12,7 @@ floorplan = house["floorplan"]
 places = house["places"]
 
 
-def generate_random_path_plot(i):
+def generate_random_path_plot(i, npoints=500):
 
     # generate two unique points
     while True:
@@ -22,14 +22,17 @@ def generate_random_path_plot(i):
         end = places[place2]
 
         # if cross of the two vectors equal zero, then try try again
-        if np.cross(start, end) != 0:
-            break
+        if np.cross(start, end) == 0:
+            continue
 
-    # generate path
-    print(place1, place2, start, end)
-    dx = rt.DistanceTransformPlanner(occgrid=floorplan)
-    dx.plan(goal=end)
-    path = dx.query(start=start)
+        # generate path
+        print(place1, place2, start, end)
+        prm = rt.PRMPlanner(occgrid=floorplan, npoints=npoints)
+        prm.plan()
+        path = prm.query(start=start, goal=end)
+
+        if path is not None:
+            break
 
     fig, ax = plt.subplots()
     ax.imshow(floorplan, cmap="gray")
