@@ -40,6 +40,9 @@ def generate_random_path_plot(i, npoints=400):
     fig, ax = plt.subplots()
     ax.imshow(floorplan, cmap="gray")
 
+    # plot the random nodes and the path
+    prm.plot(background=True)
+
     pathT = path.T  # path transpose so it becomes (x, y)
     ax.plot(pathT[0], pathT[1], "r", linewidth=2)
 
