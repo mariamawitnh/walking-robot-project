@@ -12,7 +12,7 @@ floorplan = house["floorplan"]
 places = house["places"]
 
 
-def generate_random_path_plot(i, npoints=500):
+def generate_random_path_plot(i, npoints=400):
 
     # generate two unique points
     while True:
@@ -31,8 +31,11 @@ def generate_random_path_plot(i, npoints=500):
         prm.plan()
         path = prm.query(start=start, goal=end)
 
-        if path is not None:
+        if path is not None and len(path) != 0:
             break
+
+        npoints += 100
+        print("Increased npoints as the previous value was not enough")
 
     fig, ax = plt.subplots()
     ax.imshow(floorplan, cmap="gray")
