@@ -2,7 +2,7 @@
 import roboticstoolbox as rt
 import matplotlib.pyplot as plt
 import random
-import walkingrobot as walkingrobot
+import walkingrobot2 as walkingrobot2
 import numpy as np
 
 # følg fra 5.4 og ut i boka ellerno
@@ -12,7 +12,7 @@ floorplan = house["floorplan"]
 places = house["places"]
 
 
-def generate_random_path_plot(i, npoints=400):
+def generate_random_path_plot(i, npoints=400, plot_prm=False):
 
     # generate two unique points
     while True:
@@ -37,26 +37,26 @@ def generate_random_path_plot(i, npoints=400):
         npoints += 100
         print("Increased npoints as the previous value was not enough")
 
-    fig, ax = plt.subplots()
-    ax.imshow(floorplan, cmap="gray")
+    if plot_prm:
+        fig, ax = plt.subplots()
+        ax.imshow(floorplan, cmap="gray")
 
-    # plot the random nodes and the path
-    prm.plot(background=True)
+        # plot the random nodes and the path
+        prm.plot(background=True)
 
-    pathT = path.T  # path transpose so it becomes (x, y)
-    ax.plot(pathT[0], pathT[1], "r", linewidth=2)
+        pathT = path.T  # path transpose so it becomes (x, y)
+        ax.plot(pathT[0], pathT[1], "white", linewidth=2, label="path")
 
-    # plot start and end points
-    ax.plot(start[0], start[1], 'go')   # green start
-    ax.plot(end[0], end[1], 'bo')     # blue goal
+        ax.legend()
+        ax.set_title(f"PRM Plot (npoints={npoints})")
 
-    plt.show()
+        plt.show()
 
     # goal_list = [(p[0], p[1]) for p in path]
-    robot = walkingrobot.WalkingRobot(
-        topdown=True, floor_plan=floorplan, anim_skip_every=100, follow_cam=False, path=path)
+    robot = walkingrobot2.WalkingRobot(
+        floor_plan=floorplan, anim_skip_every=100, path=path)
     robot.run()
 
 
 for i in range(5):
-    generate_random_path_plot(i)
+    generate_random_path_plot(i, plot_prm=False)

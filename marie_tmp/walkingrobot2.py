@@ -1,4 +1,4 @@
-""" Serves as the file for abstracting setting everything up """
+""" Serves as the file for abstracting setting everything up for task2 """
 import roboticstoolbox as rt
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,17 +15,13 @@ class WalkingRobot:
     L1 = L2 = 0.200
 
     def __init__(self,
-                 goal_list: list = None,
                  path=None,
                  dt_anim=0.01,
                  cycle_time=4.01,
                  anim_skip_every=3,
                  floor_plan=None,
                  scale=0.01,
-                 topdown=False,
                  cam_dist=0.4,
-                 follow_cam=True,
-                 task1_aspect_ratio=False
                  ):
         """ For some reason, ``cycle_time`` needs to be a float. It can never be an int """
         self._scale = scale
@@ -35,16 +31,12 @@ class WalkingRobot:
         else:
             h_img, w_img = None, None
 
-        if path is None:
-            self._goal_list = [(p[0] * scale, p[1] * scale) for p in goal_list]
-            self.path = None
+        # flip y
+        self.path = path
+        if h_img is not None:
+            self._goal_list = [(p[0] * scale, (h_img - p[1]) * scale) for p in path]
         else:
-            # flip y
-            self.path = path
-            if h_img is not None:
-                self._goal_list = [(p[0] * scale, (h_img - p[1]) * scale) for p in path]
-            else:
-                self._goal_list = [(p[0] * scale, p[1] * scale) for p in path]
+            self._goal_list = [(p[0] * scale, p[1] * scale) for p in path]
 
         self._dt = dt_anim
         self._gait_dt = 0.01
@@ -54,10 +46,8 @@ class WalkingRobot:
         self.leg = self._create_leg()
         self.legs = self._create_legs(self.leg)
         self.leg_offsets = self._create_leg_offsets()
-        self.topdown = topdown
 
         self._skip = anim_skip_every
-        self._follow_cam = follow_cam
 
         print("Init...")
         mm = 0.001
@@ -127,8 +117,8 @@ class WalkingRobot:
             z_range = 0.10 - (-0.15)
             self.ax.set_box_aspect((x_range, y_range, z_range))
 
-        if self.topdown:
-            self.ax.view_init(elev=90, azim=-90)
+        # top down view
+        self.ax.view_init(elev=90, azim=-90)
 
         if floor_plan is not None:
             world_w = w_img * scale
@@ -225,7 +215,6 @@ class WalkingRobot:
         K_p = 2.0
         i_goal = 1  # already at waypoint 0, navigate toward waypoint 1
         i = 0
-
         while True:
             if not plt.fignum_exists(self.env.fig.number):
                 break
@@ -270,23 +259,14 @@ class WalkingRobot:
             self.body.base = T_wb
 
             ax = self.ax
-            cam_dist = self._cam_dist
 
             if self._skip <= 0:
                 self.env.step(dt=self._dt)
                 self.env.step(dt=self._dt)
-                if self._follow_cam:
-                    ax.set_xlim(pos_x - cam_dist, pos_x + cam_dist)
-                    ax.set_ylim(pos_y - cam_dist, pos_y + cam_dist)
             elif i % self._skip == 0:
                 self.env.step(dt=self._dt)
-                if self._follow_cam:
-                    ax.set_xlim(pos_x - cam_dist, pos_x + cam_dist)
-                    ax.set_ylim(pos_y - cam_dist, pos_y + cam_dist)
 
-            if self.topdown:
-                ax.view_init(elev=90, azim=-90)
-
+            ax.view_init(elev=90, azim=-90)
             i += 1
 
         self.env.hold()
