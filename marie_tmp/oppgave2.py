@@ -66,11 +66,11 @@ def generate_random_path_plot(i, npoints=400, plot_prm=False, filename=""):
         ax.set_title(f"PRM Plot (npoints={npoints})")
 
         plt.savefig(f"fig{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
-        plt.close()
+        plt.close("all")
 
     # goal_list = [(p[0], p[1]) for p in path]
     robot = walkingrobot2.WalkingRobot(
-        floor_plan=floorplan, anim_skip_every=100, path=path)
+        floor_plan=floorplan, anim_skip_every=500, path=path)
     robot.run()
 
 
