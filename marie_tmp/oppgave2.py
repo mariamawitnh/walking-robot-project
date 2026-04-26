@@ -16,26 +16,29 @@ def generate_random_path_plot(i, npoints=400, plot_prm=False):
 
     # generate two unique points
     while True:
-        place1 = random.choice(list(places))
-        start = places[place1]
-        place2 = random.choice(list(places))
-        end = places[place2]
+        try:
+            place1 = random.choice(list(places))
+            start = places[place1]
+            place2 = random.choice(list(places))
+            end = places[place2]
 
-        # if cross of the two vectors equal zero, then try try again
-        if np.cross(start, end) == 0:
-            continue
+            # if cross of the two vectors equal zero, then try try again
+            if np.cross(start, end) == 0:
+                continue
 
-        # generate path
-        print(place1, place2, start, end)
-        prm = rt.PRMPlanner(occgrid=floorplan, npoints=npoints)
-        prm.plan()
-        path = prm.query(start=start, goal=end)
+            # generate path
+            print(place1, place2, start, end)
+            prm = rt.PRMPlanner(occgrid=floorplan, npoints=npoints)
+            prm.plan()
+            path = prm.query(start=start, goal=end)
 
-        if path is not None and len(path) != 0:
-            break
+            if path is not None and len(path) != 0:
+                break
 
-        npoints += 100
-        print("Increased npoints as the previous value was not enough")
+            npoints += 100
+            print("Increased npoints as the previous value was not enough")
+        except Exception:
+            print("failed to find a path, trying again")
 
     if plot_prm:
         fig, ax = plt.subplots()
