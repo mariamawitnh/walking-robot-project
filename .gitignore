@@ -1,6 +1,5 @@
 test.py
 test2.py
-*.csv
 
 *.log
 *.aux
